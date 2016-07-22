@@ -1,5 +1,6 @@
 package sample;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -22,6 +23,11 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // style media view
+        mediaView.fitWidthProperty().bind(Bindings.select(mediaView.sceneProperty(), "width"));
+        mediaView.fitHeightProperty().bind(Bindings.select(mediaView.sceneProperty(), "height"));
+        mediaView.setPreserveRatio(true);
+
         final File videoFile = new File("/home/richard/Videos/Webcam/flexspark-demo.mp4");
         final Media videoMedia = new Media(videoFile.toURI().toString());
         final MediaPlayer mediaPlayer = new MediaPlayer(videoMedia);
