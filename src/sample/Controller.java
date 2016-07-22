@@ -40,9 +40,7 @@ public class Controller implements Initializable {
         mediaPlayer.currentTimeProperty().addListener(new ChangeListener<Duration>() {
             @Override
             public void changed(ObservableValue<? extends Duration> observable, Duration oldValue, Duration newValue) {
-                System.out.println(oldValue + ", " + newValue);
-                videoTime.setText(String.format("%1$.3f / %2$.3f", newValue.toSeconds(),
-                        mediaPlayer.getTotalDuration().toSeconds()));
+                updateVideoTime();
             }
         });
     }
@@ -60,10 +58,18 @@ public class Controller implements Initializable {
     @FXML
     private void stepForwardVideo() {
         mediaPlayer.seek(mediaPlayer.getCurrentTime().add(STEP_DURATION));
+        updateVideoTime();
     }
 
     @FXML
     private void stepBackwardVideo() {
         mediaPlayer.seek(mediaPlayer.getCurrentTime().subtract(STEP_DURATION));
+        updateVideoTime();
+    }
+
+    private void updateVideoTime() {
+        videoTime.setText(String.format("%1$.3f / %2$.3f",
+                mediaPlayer.getCurrentTime().toSeconds(),
+                mediaPlayer.getTotalDuration().toSeconds()));
     }
 }
