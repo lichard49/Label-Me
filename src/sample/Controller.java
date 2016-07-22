@@ -9,6 +9,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
+import javafx.scene.text.Text;
 import javafx.util.Duration;
 
 import java.io.File;
@@ -17,9 +18,8 @@ import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
 
-    @FXML
-    private MediaView mediaView;
-
+    @FXML private MediaView mediaView;
+    @FXML private Text videoTime;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -38,6 +38,8 @@ public class Controller implements Initializable {
             @Override
             public void changed(ObservableValue<? extends Duration> observable, Duration oldValue, Duration newValue) {
                 System.out.println(oldValue + ", " + newValue);
+                videoTime.setText(String.format("%1$.3f / %2$.3f", newValue.toSeconds(),
+                        mediaPlayer.getTotalDuration().toSeconds()));
             }
         });
     }
