@@ -6,6 +6,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
@@ -20,6 +21,7 @@ public class Controller implements Initializable {
 
     private final Duration STEP_DURATION = Duration.millis(1000);
 
+    @FXML private BorderPane mediaViewContainer;
     @FXML private MediaView mediaView;
     @FXML private Text videoTime;
 
@@ -28,8 +30,8 @@ public class Controller implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // style media view
-        mediaView.fitWidthProperty().bind(Bindings.select(mediaView.sceneProperty(), "width"));
-        mediaView.fitHeightProperty().bind(Bindings.select(mediaView.sceneProperty(), "height"));
+        mediaView.fitWidthProperty().bind(mediaViewContainer.prefWidthProperty());
+        mediaView.fitHeightProperty().bind(mediaViewContainer.prefHeightProperty());
         mediaView.setPreserveRatio(true);
 
         final File videoFile = new File("/home/richard/Videos/Webcam/flexspark-demo.mp4");

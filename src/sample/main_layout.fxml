@@ -10,12 +10,11 @@
 <?import javafx.scene.media.MediaView?>
 <?import javafx.scene.text.Text?>
 
-
-<BorderPane xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
+<BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
    <center>
-      <SplitPane dividerPositions="0.5" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" orientation="VERTICAL" prefHeight="600.0" prefWidth="800.0">
+      <SplitPane dividerPositions="0.5" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" orientation="VERTICAL">
         <items>
-            <BorderPane>
+            <BorderPane fx:id="mediaViewContainer">
                <center>
                   <MediaView fx:id="mediaView" fitHeight="200.0" fitWidth="200.0" BorderPane.alignment="CENTER">
                      <viewport>
@@ -27,12 +26,12 @@
                   </MediaView>
                </center>
             </BorderPane>
-            <ScrollPane />
+            <ScrollPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
         </items>
       </SplitPane>
    </center>
    <bottom>
-      <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+      <ToolBar minHeight="-Infinity" minWidth="-Infinity" prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
         <items>
             <Button fx:id="stepBackwardButton" mnemonicParsing="false" onAction="#stepBackwardVideo" text="Step Backward" />
           <Button fx:id="playButton" mnemonicParsing="false" onAction="#playVideo" text="Play" />

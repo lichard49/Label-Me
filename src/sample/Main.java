@@ -30,6 +30,7 @@ public class Main extends Application {
         Scene scene = new Scene(rootPane);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Label Me");
+        primaryStage.setMaximized(true);
         primaryStage.show();
     }
 
