@@ -18,6 +18,8 @@ import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
 
+    private final Duration STEP_DURATION = Duration.millis(1000);
+
     @FXML private MediaView mediaView;
     @FXML private Text videoTime;
 
@@ -53,5 +55,15 @@ public class Controller implements Initializable {
     @FXML
     private void pauseVideo() {
         mediaPlayer.pause();
+    }
+
+    @FXML
+    private void stepForwardVideo() {
+        mediaPlayer.seek(mediaPlayer.getCurrentTime().add(STEP_DURATION));
+    }
+
+    @FXML
+    private void stepBackwardVideo() {
+        mediaPlayer.seek(mediaPlayer.getCurrentTime().subtract(STEP_DURATION));
     }
 }
