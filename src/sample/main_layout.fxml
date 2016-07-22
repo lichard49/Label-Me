@@ -34,7 +34,8 @@
    <bottom>
       <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
         <items>
-          <Button mnemonicParsing="false" text="Button" />
+          <Button fx:id="playButton" mnemonicParsing="false" onAction="#playVideo" text="Play" />
+            <Button fx:id="pauseButton" mnemonicParsing="false" onAction="#pauseVideo" text="Pause" />
             <Text fx:id="videoTime" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" textAlignment="CENTER" />
         </items>
       </ToolBar>

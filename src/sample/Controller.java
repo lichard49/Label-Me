@@ -21,6 +21,8 @@ public class Controller implements Initializable {
     @FXML private MediaView mediaView;
     @FXML private Text videoTime;
 
+    private MediaPlayer mediaPlayer;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // style media view
@@ -30,10 +32,9 @@ public class Controller implements Initializable {
 
         final File videoFile = new File("/home/richard/Videos/Webcam/flexspark-demo.mp4");
         final Media videoMedia = new Media(videoFile.toURI().toString());
-        final MediaPlayer mediaPlayer = new MediaPlayer(videoMedia);
+        mediaPlayer = new MediaPlayer(videoMedia);
         mediaView.setMediaPlayer(mediaPlayer);
 
-        mediaPlayer.play();
         mediaPlayer.currentTimeProperty().addListener(new ChangeListener<Duration>() {
             @Override
             public void changed(ObservableValue<? extends Duration> observable, Duration oldValue, Duration newValue) {
@@ -42,5 +43,15 @@ public class Controller implements Initializable {
                         mediaPlayer.getTotalDuration().toSeconds()));
             }
         });
+    }
+
+    @FXML
+    private void playVideo() {
+        mediaPlayer.play();
+    }
+
+    @FXML
+    private void pauseVideo() {
+        mediaPlayer.pause();
     }
 }
