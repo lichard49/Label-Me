@@ -93,4 +93,14 @@ public class Controller implements Initializable {
         waveform.prefWidthProperty().bind(rootPane.widthProperty());
         waveformList.getChildren().add(waveform);
     }
+
+    @FXML
+    private void openVideoFile() {
+
+    }
+
+    @FXML
+    private void openWaveformFile() {
+
+    }
 }
