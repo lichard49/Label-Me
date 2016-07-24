@@ -13,6 +13,8 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.File;
@@ -30,6 +32,7 @@ public class Controller implements Initializable {
     @FXML private Text videoTime;
     @FXML private VBox waveformList;
 
+    private Stage stage;
     private MediaPlayer mediaPlayer;
 
     @Override
@@ -50,6 +53,10 @@ public class Controller implements Initializable {
                 updateVideoTime();
             }
         });
+    }
+
+    protected void setStage(Stage stage) {
+        this.stage = stage;
     }
 
     @FXML
@@ -96,7 +103,9 @@ public class Controller implements Initializable {
 
     @FXML
     private void openVideoFile() {
-
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open Video File");
+        fileChooser.showOpenDialog(stage);
     }
 
     @FXML

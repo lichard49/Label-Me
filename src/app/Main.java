@@ -11,7 +11,10 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Parent rootPane = FXMLLoader.load(getClass().getResource("main_layout.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("main_layout.fxml"));
+        Parent rootPane = fxmlLoader.load();
+        Controller controller = (Controller) fxmlLoader.getController();
+        controller.setStage(primaryStage);
         Scene scene = new Scene(rootPane);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Label Me");
