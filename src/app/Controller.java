@@ -18,8 +18,13 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URL;
+import java.text.ParseException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -111,6 +116,37 @@ public class Controller implements Initializable {
 
     @FXML
     private void openWaveformFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open Waveform File");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
+        File waveformFile = fileChooser.showOpenDialog(stage);
 
+        try (BufferedReader br = new BufferedReader(new FileReader(waveformFile))) {
+            String line;
+            int numColumns = -1;
+            int lineNumber = 0;
+            List<XYChart.Data<Float, Float>> coordinates = new LinkedList<>();
+
+            while ((line = br.readLine()) != null) {
+                String[] lineParts = line.split(",");
+                if(numColumns == -1) {
+                    numColumns = lineParts.length;
+
+                    // TODO handle header names
+                } else if(lineParts.length != numColumns) {
+                    throw new ParseException("Wrong number of columns on line " + lineNumber, lineNumber);
+                } else {
+                    coordinates.add(new XYChart.Data<>(Float.parseFloat(lineParts[0]), Float.parseFloat(lineParts[1])));
+                }
+            }
+            insertWaveform(coordinates);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
     }
 }
