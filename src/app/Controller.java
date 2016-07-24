@@ -7,6 +7,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
@@ -41,18 +42,6 @@ public class Controller implements Initializable {
         mediaView.fitWidthProperty().bind(mediaViewContainer.prefWidthProperty());
         mediaView.fitHeightProperty().bind(mediaViewContainer.prefHeightProperty());
         mediaView.setPreserveRatio(true);
-
-        final File videoFile = new File("/home/richard/Videos/Webcam/flexspark-demo.mp4");
-        final Media videoMedia = new Media(videoFile.toURI().toString());
-        mediaPlayer = new MediaPlayer(videoMedia);
-        mediaView.setMediaPlayer(mediaPlayer);
-
-        mediaPlayer.currentTimeProperty().addListener(new ChangeListener<Duration>() {
-            @Override
-            public void changed(ObservableValue<? extends Duration> observable, Duration oldValue, Duration newValue) {
-                updateVideoTime();
-            }
-        });
     }
 
     protected void setStage(Stage stage) {
@@ -105,7 +94,19 @@ public class Controller implements Initializable {
     private void openVideoFile() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Video File");
-        fileChooser.showOpenDialog(stage);
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("MP4", "*.mp4"));
+        File videoFile = fileChooser.showOpenDialog(stage);
+
+        final Media videoMedia = new Media(videoFile.toURI().toString());
+        mediaPlayer = new MediaPlayer(videoMedia);
+        mediaView.setMediaPlayer(mediaPlayer);
+        mediaPlayer.currentTimeProperty().addListener(new ChangeListener<Duration>() {
+            @Override
+            public void changed(ObservableValue<? extends Duration> observable, Duration oldValue, Duration newValue) {
+                updateVideoTime();
+            }
+        });
+
     }
 
     @FXML
