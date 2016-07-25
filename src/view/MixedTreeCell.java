@@ -1,4 +1,4 @@
-package app;
+package view;
 
 import javafx.event.EventHandler;
 import javafx.scene.control.CheckBoxTreeItem;

@@ -1,4 +1,4 @@
-package app;
+package controller;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -11,7 +11,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("main_layout.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("../view/main_layout.fxml"));
         Parent rootPane = fxmlLoader.load();
         Controller controller = (Controller) fxmlLoader.getController();
         controller.setStage(primaryStage);
