@@ -14,20 +14,25 @@ import javafx.scene.input.KeyEvent;
  */
 public class MixedTreeCell extends CheckBoxTreeCell<String> {
     private TextField textField;
+    private boolean isCheckbox = false;
 
     public MixedTreeCell() {
     }
 
     @Override
     public void startEdit() {
-        super.startEdit();
+        if(!isCheckbox && getTreeItem().getChildren().size() == 0) {
+            super.startEdit();
 
-        if (textField == null) {
-            createTextField();
+            System.out.println("Start edit " + getItem() + " with isCheckbox=" + isCheckbox);
+
+            if (textField == null) {
+                createTextField();
+            }
+            setText(null);
+            setGraphic(textField);
+            textField.selectAll();
         }
-        setText(null);
-        setGraphic(textField);
-        textField.selectAll();
     }
 
     @Override
@@ -43,11 +48,13 @@ public class MixedTreeCell extends CheckBoxTreeCell<String> {
         super.updateItem(item, empty);
 
         if(empty) {
-            // if the item is a checkbox
             setGraphic(null);
             setText(null);
         } else if (!(getTreeItem() instanceof CheckBoxTreeItem)) {
             setGraphic(null);
+            isCheckbox = false;
+        } else {
+            isCheckbox = true;
         }
     }
 
