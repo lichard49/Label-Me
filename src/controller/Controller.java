@@ -109,7 +109,8 @@ public class Controller implements Initializable {
 
         waveform.setLegendVisible(false);
         waveform.getData().add(series);
-        waveform.prefWidthProperty().bind(rootPane.widthProperty());
+        waveform.setPrefHeight(225);
+        waveform.prefWidthProperty().bind(rootPane.widthProperty().subtract(265));
         waveformList.getChildren().add(waveform);
     }
 

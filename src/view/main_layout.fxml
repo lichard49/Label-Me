@@ -33,7 +33,7 @@
             </BorderPane>
             <ScrollPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="-Infinity">
                <content>
-                  <VBox fx:id="waveformList" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="200.0" />
+                  <VBox fx:id="waveformList" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" />
                </content>
             </ScrollPane>
         </items>
