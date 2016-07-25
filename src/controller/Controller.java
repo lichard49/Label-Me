@@ -4,6 +4,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -19,6 +20,7 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import model.WaveformFile;
+import view.MarkeredLineChart;
 import view.MixedTreeCell;
 
 import java.io.File;
@@ -45,6 +47,8 @@ public class Controller implements Initializable {
 
     private List<WaveformFile> waveformFiles;
 
+    private XYChart.Data<Number, Number> timeMarker;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // style media view
@@ -65,6 +69,8 @@ public class Controller implements Initializable {
         });
 
         waveformFiles = new LinkedList<>();
+
+        timeMarker = new XYChart.Data<>(0, 0);
     }
 
     protected void setStage(Stage stage) {
@@ -97,15 +103,24 @@ public class Controller implements Initializable {
         videoTime.setText(String.format("%1$.3f / %2$.3f",
                 mediaPlayer.getCurrentTime().toSeconds(),
                 mediaPlayer.getTotalDuration().toSeconds()));
+
+        timeMarker.setXValue(mediaPlayer.getCurrentTime().toSeconds());
+
+        for(Node node : waveformList.getChildren()) {
+            MarkeredLineChart<Number, Number> waveform = (MarkeredLineChart) node;
+            waveform.layoutPlotChildren();
+        }
     }
 
     private void insertWaveform(List<XYChart.Data<Float, Float>> coordinates) {
-        LineChart<Number, Number> waveform = new LineChart<>(new NumberAxis(), new NumberAxis());
+        MarkeredLineChart<Number, Number> waveform = new MarkeredLineChart<>(new NumberAxis(), new NumberAxis());
         XYChart.Series series = new XYChart.Series();
 
         for(XYChart.Data<Float, Float> coordinate : coordinates) {
             series.getData().add(coordinate);
         }
+
+        waveform.addVerticalValueMarker(timeMarker);
 
         waveform.setLegendVisible(false);
         waveform.getData().add(series);
