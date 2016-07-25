@@ -47,8 +47,6 @@ public class Controller implements Initializable {
 
     private List<WaveformFile> waveformFiles;
 
-    private XYChart.Data<Number, Number> timeMarker;
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // style media view
@@ -69,8 +67,6 @@ public class Controller implements Initializable {
         });
 
         waveformFiles = new LinkedList<>();
-
-        timeMarker = new XYChart.Data<>(0, 0);
     }
 
     protected void setStage(Stage stage) {
@@ -104,10 +100,9 @@ public class Controller implements Initializable {
                 mediaPlayer.getCurrentTime().toSeconds(),
                 mediaPlayer.getTotalDuration().toSeconds()));
 
-        timeMarker.setXValue(mediaPlayer.getCurrentTime().toSeconds());
-
         for(Node node : waveformList.getChildren()) {
             MarkeredLineChart<Number, Number> waveform = (MarkeredLineChart) node;
+            waveform.updateTime(mediaPlayer.getCurrentTime().toSeconds());
             waveform.layoutPlotChildren();
         }
     }
@@ -119,9 +114,7 @@ public class Controller implements Initializable {
         for(XYChart.Data<Float, Float> coordinate : coordinates) {
             series.getData().add(coordinate);
         }
-
-        waveform.addVerticalValueMarker(timeMarker);
-
+        
         waveform.setLegendVisible(false);
         waveform.getData().add(series);
         waveform.setPrefHeight(225);

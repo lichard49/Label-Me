@@ -19,7 +19,7 @@ import java.util.Objects;
  * Created by richard on 7/25/16.
  */
 public class MarkeredLineChart<X, Y> extends LineChart<X, Y> {
-    private ObservableList<XYChart.Data<X, Y>> verticalMarkers;
+    private XYChart.Data<X, Y> timeMarker;
     private ObservableList<XYChart.Data<X, X>> verticalRangeMarkers;
 
     public MarkeredLineChart(Axis<X> xAxis, Axis<Y> yAxis) {
@@ -28,17 +28,14 @@ public class MarkeredLineChart<X, Y> extends LineChart<X, Y> {
         verticalRangeMarkers = FXCollections.observableArrayList(data -> new Observable[] {data.YValueProperty()}); // 2nd type of the range is X type as well
         verticalRangeMarkers.addListener((InvalidationListener) observable -> layoutPlotChildren());
 
-        verticalMarkers = FXCollections.observableArrayList(data -> new Observable[] {data.XValueProperty()});
-        verticalMarkers.addListener((InvalidationListener)observable -> layoutPlotChildren());
+        timeMarker = new XYChart.Data(0, 0);
+        Line line = new Line();
+        timeMarker.setNode(line);
+        getPlotChildren().add(line);
     }
 
-    public void addVerticalValueMarker(Data<X, Y> marker) {
-        Objects.requireNonNull(marker, "the marker must not be null");
-        if (verticalMarkers.contains(marker)) return;
-        Line line = new Line();
-        marker.setNode(line);
-        getPlotChildren().add(line);
-        verticalMarkers.add(marker);
+    public void updateTime(X time) {
+        timeMarker.setXValue(time);
     }
 
     public void addVerticalRangeMarker(XYChart.Data<X, X> marker) {
@@ -68,14 +65,12 @@ public class MarkeredLineChart<X, Y> extends LineChart<X, Y> {
     public void layoutPlotChildren() {
         super.layoutPlotChildren();
 
-        for (Data<X, Y> verticalMarker : verticalMarkers) {
-            Line line = (Line) verticalMarker.getNode();
-            line.setStartX(getXAxis().getDisplayPosition(verticalMarker.getXValue()) + 0.5);  // 0.5 for crispness
-            line.setEndX(line.getStartX());
-            line.setStartY(0d);
-            line.setEndY(getBoundsInLocal().getHeight());
-            line.toFront();
-        }
+        Line line = (Line) timeMarker.getNode();
+        line.setStartX(getXAxis().getDisplayPosition(timeMarker.getXValue()) + 0.5);  // 0.5 for crispness
+        line.setEndX(line.getStartX());
+        line.setStartY(0d);
+        line.setEndY(getBoundsInLocal().getHeight());
+        line.toFront();
 
         for (XYChart.Data<X, X> verticalRangeMarker : verticalRangeMarkers) {
             Rectangle rectangle = (Rectangle) verticalRangeMarker.getNode();
