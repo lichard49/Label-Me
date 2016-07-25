@@ -1,5 +1,6 @@
 package app;
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
@@ -20,6 +21,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
+import model.WaveformFile;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -45,6 +47,8 @@ public class Controller implements Initializable {
     private Stage stage;
     private MediaPlayer mediaPlayer;
 
+    private List<WaveformFile> waveformFiles;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // style media view
@@ -55,17 +59,6 @@ public class Controller implements Initializable {
 
         TreeItem<String> rootItem = new TreeItem<>("Resources");
         rootItem.setExpanded(true);
-        for(int i = 0; i < 6; i++) {
-            TreeItem<String> fileItem = new TreeItem<>("File " + i);
-            TreeItem<String> resourceTimeItem = new TreeItem<>("00:00");
-            fileItem.getChildren().add(resourceTimeItem);
-            fileItem.setExpanded(true);
-            for(int j = 0; j < 3; j++) {
-                CheckBoxTreeItem<String> columnItem = new CheckBoxTreeItem<>("Column " + j);
-                fileItem.getChildren().add(columnItem);
-            }
-            rootItem.getChildren().add(fileItem);
-        }
         resourceTree.setRoot(rootItem);
         resourceTree.setEditable(true);
         resourceTree.setCellFactory(new Callback<TreeView<String>, MixedTreeCell>() {
@@ -74,6 +67,8 @@ public class Controller implements Initializable {
                 return new MixedTreeCell();
             }
         });
+
+        waveformFiles = new LinkedList<>();
     }
 
     protected void setStage(Stage stage) {
@@ -141,33 +136,31 @@ public class Controller implements Initializable {
 
     }
 
+    private void addWaveformToResourceTree(WaveformFile waveformFile) {
+        TreeItem<String> fileItem = new TreeItem<>(waveformFile.getFilename());
+        TreeItem<String> resourceTimeItem = new TreeItem<>(waveformFile.getFormattedOffsetTime());
+        fileItem.getChildren().add(resourceTimeItem);
+
+        fileItem.setExpanded(true);
+        for(String columnHeader : waveformFile.getColumnHeaders()) {
+            CheckBoxTreeItem<String> columnName = new CheckBoxTreeItem<>(columnHeader);
+            fileItem.getChildren().add(columnName);
+        }
+        resourceTree.getRoot().getChildren().add(fileItem);
+    }
+
     @FXML
     private void openWaveformFile() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Waveform File");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
-        File waveformFile = fileChooser.showOpenDialog(stage);
+        File file = fileChooser.showOpenDialog(stage);
 
-        try (BufferedReader br = new BufferedReader(new FileReader(waveformFile))) {
-            String line;
-            int numColumns = -1;
-            int lineNumber = 0;
-            List<XYChart.Data<Float, Float>> coordinates = new LinkedList<>();
-
-            while ((line = br.readLine()) != null) {
-                String[] lineParts = line.split(",");
-                if(numColumns == -1) {
-                    numColumns = lineParts.length;
-
-                    // TODO handle header names
-                } else if(lineParts.length != numColumns) {
-                    throw new ParseException("Wrong number of columns on line " + lineNumber, lineNumber);
-                } else {
-                    coordinates.add(new XYChart.Data<>(Float.parseFloat(lineParts[0]), Float.parseFloat(lineParts[1])));
-                }
-            }
-            insertWaveform(coordinates);
-
+        try {
+            WaveformFile waveformFile = new WaveformFile(file);
+            waveformFiles.add(waveformFile);
+            insertWaveform(waveformFile.getCoordinates());
+            addWaveformToResourceTree(waveformFile);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ParseException e) {
