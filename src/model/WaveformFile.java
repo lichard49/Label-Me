@@ -41,7 +41,10 @@ public class WaveformFile {
                 numColumns = lineParts.length;
                 columnHeaders = Arrays.asList(lineParts);
             } else if(lineParts.length != numColumns) {
-                throw new ParseException("Wrong number of columns on line " + lineNumber, lineNumber);
+                if(!(lineParts.length == 1 && lineParts[0].trim().length() == 0)) {
+                    throw new ParseException("Wrong number of columns on line " + lineNumber + " expected " + numColumns
+                            + " but found " + lineParts.length, lineNumber);
+                }
             } else {
                 coordinates.add(new XYChart.Data<>(Float.parseFloat(lineParts[0]), Float.parseFloat(lineParts[1])));
             }
