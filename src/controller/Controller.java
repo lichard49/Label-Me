@@ -29,6 +29,7 @@ import java.net.URL;
 import java.text.ParseException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
@@ -114,7 +115,7 @@ public class Controller implements Initializable {
         for(XYChart.Data<Float, Float> coordinate : coordinates) {
             series.getData().add(coordinate);
         }
-        
+
         waveform.setLegendVisible(false);
         waveform.getData().add(series);
         waveform.setPrefHeight(225);
@@ -163,9 +164,12 @@ public class Controller implements Initializable {
 
         try {
             WaveformFile waveformFile = new WaveformFile(file);
-            waveformFiles.add(waveformFile);
-            insertWaveform(waveformFile.getCoordinates());
-            addWaveformToResourceTree(waveformFile);
+            String timeColumn = chooseTimeColumn(waveformFile);
+            if(timeColumn != null) {
+                waveformFiles.add(waveformFile);
+                insertWaveform(waveformFile.getCoordinates());
+                addWaveformToResourceTree(waveformFile);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ParseException e) {
@@ -173,5 +177,19 @@ public class Controller implements Initializable {
         } catch (NumberFormatException e) {
             e.printStackTrace();
         }
+    }
+
+    private String chooseTimeColumn(WaveformFile waveformFile) {
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(waveformFile.getColumnHeaders().get(0),
+                waveformFile.getColumnHeaders());
+        dialog.setTitle("Importing Waveform File");
+        dialog.setHeaderText("Importing " + waveformFile.getFilename());
+        dialog.setContentText("Choose time column: ");
+
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()){
+            return result.get();
+        }
+        return null;
     }
 }
