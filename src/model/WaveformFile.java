@@ -1,6 +1,9 @@
 package model;
 
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.layout.Pane;
+import view.MarkeredLineChart;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,6 +24,7 @@ public class WaveformFile {
     private String timeColumn;
 
     private Duration offsetTime;
+    private Map<String, MarkeredLineChart> waveforms;
 
     public WaveformFile(File file) throws IOException, ParseException, NumberFormatException {
         filename = file.getName();
@@ -53,6 +57,26 @@ public class WaveformFile {
                 }
             }
         }
+
+        waveforms = new HashMap<>();
+    }
+
+    public MarkeredLineChart getWaveform(String column, Pane rootPane) {
+        if(!waveforms.containsKey(column)) {
+            MarkeredLineChart<Number, Number> waveform = new MarkeredLineChart<>(new NumberAxis(), new NumberAxis());
+            XYChart.Series series = new XYChart.Series();
+
+            for(int i = 0; i < getColumn(timeColumn).size(); i++) {
+                series.getData().add(new XYChart.Data<>(getColumn(timeColumn).get(i), getColumn(column).get(i)));
+            }
+
+            waveform.setLegendVisible(false);
+            waveform.getData().add(series);
+            waveform.setPrefHeight(225);
+            waveform.prefWidthProperty().bind(rootPane.widthProperty().subtract(265));
+            waveforms.put(column, waveform);
+        }
+        return waveforms.get(column);
     }
 
     public void setTimeColumn(String column) throws InvalidKeyException {

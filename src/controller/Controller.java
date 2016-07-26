@@ -71,7 +71,11 @@ public class Controller implements Initializable {
                 String selectedFilename = (String) event.getTreeItem().getParent().getValue();
                 String selectedColumnHeader = (String) event.getTreeItem().getValue();
                 WaveformFile selectedWaveform = waveformFiles.get(selectedFilename);
-                insertWaveform(selectedWaveform.getTimeColumn(), selectedWaveform.getColumn(selectedColumnHeader));
+                if(event.getTreeItem().isSelected()) {
+                    insertWaveform(selectedColumnHeader, selectedWaveform);
+                } else {
+                    removeWaveform(selectedColumnHeader, selectedWaveform);
+                }
             }
         });
 
@@ -116,22 +120,12 @@ public class Controller implements Initializable {
         }
     }
 
-    private void insertWaveform(List<Float> x, List<Float> y) {
-        if(x.size() != y.size()) {
-            return;
-        }
-        MarkeredLineChart<Number, Number> waveform = new MarkeredLineChart<>(new NumberAxis(), new NumberAxis());
-        XYChart.Series series = new XYChart.Series();
+    private void insertWaveform(String column, WaveformFile waveformFile) {
+        waveformList.getChildren().add(waveformFile.getWaveform(column, rootPane));
+    }
 
-        for(int i = 0; i < x.size(); i++) {
-            series.getData().add(new XYChart.Data<>(x.get(i), y.get(i)));
-        }
-
-        waveform.setLegendVisible(false);
-        waveform.getData().add(series);
-        waveform.setPrefHeight(225);
-        waveform.prefWidthProperty().bind(rootPane.widthProperty().subtract(265));
-        waveformList.getChildren().add(waveform);
+    private void removeWaveform(String column, WaveformFile waveformFile) {
+        waveformList.getChildren().remove(waveformFile.getWaveform(column, rootPane));
     }
 
     @FXML
