@@ -2,6 +2,7 @@ package controller;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
@@ -26,11 +27,9 @@ import view.MixedTreeCell;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.security.InvalidKeyException;
 import java.text.ParseException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class Controller implements Initializable {
 
@@ -46,7 +45,7 @@ public class Controller implements Initializable {
     private Stage stage;
     private MediaPlayer mediaPlayer;
 
-    private List<WaveformFile> waveformFiles;
+    private Map<String, WaveformFile> waveformFiles;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -54,7 +53,6 @@ public class Controller implements Initializable {
         mediaView.fitWidthProperty().bind(mediaViewContainer.prefWidthProperty());
         mediaView.fitHeightProperty().bind(mediaViewContainer.prefHeightProperty());
         mediaView.setPreserveRatio(true);
-
 
         TreeItem<String> rootItem = new TreeItem<>("Resources");
         rootItem.setExpanded(true);
@@ -66,8 +64,18 @@ public class Controller implements Initializable {
                 return new MixedTreeCell();
             }
         });
+        resourceTree.getRoot().addEventHandler(CheckBoxTreeItem.checkBoxSelectionChangedEvent(),
+                new EventHandler<CheckBoxTreeItem.TreeModificationEvent<Object>>() {
+            @Override
+            public void handle(CheckBoxTreeItem.TreeModificationEvent<Object> event) {
+                String selectedFilename = (String) event.getTreeItem().getParent().getValue();
+                String selectedColumnHeader = (String) event.getTreeItem().getValue();
+                WaveformFile selectedWaveform = waveformFiles.get(selectedFilename);
+                insertWaveform(selectedWaveform.getTimeColumn(), selectedWaveform.getColumn(selectedColumnHeader));
+            }
+        });
 
-        waveformFiles = new LinkedList<>();
+        waveformFiles = new LinkedHashMap<>();
     }
 
     protected void setStage(Stage stage) {
@@ -108,12 +116,15 @@ public class Controller implements Initializable {
         }
     }
 
-    private void insertWaveform(List<XYChart.Data<Float, Float>> coordinates) {
+    private void insertWaveform(List<Float> x, List<Float> y) {
+        if(x.size() != y.size()) {
+            return;
+        }
         MarkeredLineChart<Number, Number> waveform = new MarkeredLineChart<>(new NumberAxis(), new NumberAxis());
         XYChart.Series series = new XYChart.Series();
 
-        for(XYChart.Data<Float, Float> coordinate : coordinates) {
-            series.getData().add(coordinate);
+        for(int i = 0; i < x.size(); i++) {
+            series.getData().add(new XYChart.Data<>(x.get(i), y.get(i)));
         }
 
         waveform.setLegendVisible(false);
@@ -130,16 +141,17 @@ public class Controller implements Initializable {
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("MP4", "*.mp4"));
         File videoFile = fileChooser.showOpenDialog(stage);
 
-        final Media videoMedia = new Media(videoFile.toURI().toString());
-        mediaPlayer = new MediaPlayer(videoMedia);
-        mediaView.setMediaPlayer(mediaPlayer);
-        mediaPlayer.currentTimeProperty().addListener(new ChangeListener<Duration>() {
-            @Override
-            public void changed(ObservableValue<? extends Duration> observable, Duration oldValue, Duration newValue) {
-                updateVideoTime();
-            }
-        });
-
+        if(videoFile != null) {
+            final Media videoMedia = new Media(videoFile.toURI().toString());
+            mediaPlayer = new MediaPlayer(videoMedia);
+            mediaView.setMediaPlayer(mediaPlayer);
+            mediaPlayer.currentTimeProperty().addListener(new ChangeListener<Duration>() {
+                @Override
+                public void changed(ObservableValue<? extends Duration> observable, Duration oldValue, Duration newValue) {
+                    updateVideoTime();
+                }
+            });
+        }
     }
 
     private void addWaveformToResourceTree(WaveformFile waveformFile) {
@@ -162,25 +174,31 @@ public class Controller implements Initializable {
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
         File file = fileChooser.showOpenDialog(stage);
 
-        try {
-            WaveformFile waveformFile = new WaveformFile(file);
-            String timeColumn = chooseTimeColumn(waveformFile);
-            if(timeColumn != null) {
-                waveformFiles.add(waveformFile);
-                insertWaveform(waveformFile.getCoordinates());
-                addWaveformToResourceTree(waveformFile);
+        if(file != null) {
+            try {
+                WaveformFile waveformFile = new WaveformFile(file);
+                String timeColumn = chooseTimeColumn(waveformFile);
+                if (timeColumn != null) {
+                    try {
+                        waveformFile.setTimeColumn(timeColumn);
+                    } catch (InvalidKeyException e) {
+                        e.printStackTrace();
+                    }
+                    waveformFiles.put(waveformFile.getFilename(), waveformFile);
+                    addWaveformToResourceTree(waveformFile);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
         }
     }
 
     private String chooseTimeColumn(WaveformFile waveformFile) {
-        ChoiceDialog<String> dialog = new ChoiceDialog<>(waveformFile.getColumnHeaders().get(0),
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(waveformFile.getColumnHeaders().iterator().next(),
                 waveformFile.getColumnHeaders());
         dialog.setTitle("Importing Waveform File");
         dialog.setHeaderText("Importing " + waveformFile.getFilename());
