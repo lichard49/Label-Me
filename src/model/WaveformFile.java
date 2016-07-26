@@ -24,6 +24,7 @@ public class WaveformFile {
     private String timeColumn;
 
     private Duration offsetTime;
+    private Duration previousOffsetTime;
     private Map<String, MarkeredLineChart> waveforms;
 
     public WaveformFile(File file) throws IOException, ParseException, NumberFormatException {
@@ -67,7 +68,8 @@ public class WaveformFile {
             XYChart.Series series = new XYChart.Series();
 
             for(int i = 0; i < getColumn(timeColumn).size(); i++) {
-                series.getData().add(new XYChart.Data<>(getColumn(timeColumn).get(i), getColumn(column).get(i)));
+                series.getData().add(new XYChart.Data<>(getColumn(timeColumn).get(i)+offsetTime.getSeconds(),
+                        getColumn(column).get(i)));
             }
 
             waveform.setLegendVisible(false);
@@ -77,6 +79,23 @@ public class WaveformFile {
             waveforms.put(column, waveform);
         }
         return waveforms.get(column);
+    }
+
+    public void setOffsetTime(float seconds) {
+        if(offsetTime != null) {
+            previousOffsetTime = offsetTime;
+        } else {
+            previousOffsetTime = Duration.ZERO;
+        }
+        offsetTime = Duration.ZERO.plusMillis((int)(seconds*1000));
+
+        for(MarkeredLineChart<Number, Number> waveform : waveforms.values()) {
+            XYChart.Series series = waveform.getData().get(0); // each line chart should only have one series
+            for(int i = 0; i < series.getData().size(); i++) {
+                XYChart.Data point = (XYChart.Data) series.getData().get(i);
+                point.setXValue((Float) point.getXValue() + offsetTime.getSeconds() - previousOffsetTime.getSeconds());
+            }
+        }
     }
 
     public void setTimeColumn(String column) throws InvalidKeyException {
@@ -99,7 +118,7 @@ public class WaveformFile {
     }
 
     public String getFormattedOffsetTime() {
-        return offsetTime.toString();
+        return String.valueOf(offsetTime.getSeconds());
     }
 
     public int getNumColumns() {

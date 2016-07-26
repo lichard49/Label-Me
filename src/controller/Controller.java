@@ -2,6 +2,7 @@ package controller;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -76,6 +77,14 @@ public class Controller implements Initializable {
                 } else {
                     removeWaveform(selectedColumnHeader, selectedWaveform);
                 }
+            }
+        });
+        resourceTree.getRoot().addEventHandler(TreeItem.valueChangedEvent(), new EventHandler<TreeItem.TreeModificationEvent<Object>>() {
+            @Override
+            public void handle(TreeItem.TreeModificationEvent<Object> event) {
+                String selectedFilename = (String) event.getTreeItem().getParent().getValue();
+                waveformFiles.get(selectedFilename).setOffsetTime(Float.parseFloat(
+                        event.getTreeItem().getValue().toString()));
             }
         });
 
