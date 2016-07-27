@@ -1,5 +1,6 @@
 package model;
 
+import javafx.scene.chart.Axis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.layout.Pane;
@@ -64,7 +65,7 @@ public class WaveformFile {
 
     public MarkeredLineChart getWaveform(String column, Pane rootPane) {
         if(!waveforms.containsKey(column)) {
-            MarkeredLineChart<Number, Number> waveform = new MarkeredLineChart<>(new NumberAxis(), new NumberAxis());
+            MarkeredLineChart waveform = new MarkeredLineChart(new NumberAxis(), new NumberAxis());
             XYChart.Series series = new XYChart.Series();
 
             for(int i = 0; i < getColumn(timeColumn).size(); i++) {
@@ -89,12 +90,15 @@ public class WaveformFile {
         }
         offsetTime = Duration.ZERO.plusMillis((int)(seconds*1000));
 
-        for(MarkeredLineChart<Number, Number> waveform : waveforms.values()) {
+        float deltaOffset = offsetTime.getSeconds() - previousOffsetTime.getSeconds();
+        for(MarkeredLineChart waveform : waveforms.values()) {
             XYChart.Series series = waveform.getData().get(0); // each line chart should only have one series
             for(int i = 0; i < series.getData().size(); i++) {
                 XYChart.Data point = (XYChart.Data) series.getData().get(i);
-                point.setXValue((Float) point.getXValue() + offsetTime.getSeconds() - previousOffsetTime.getSeconds());
+                point.setXValue((Float) point.getXValue() + deltaOffset);
             }
+
+            waveform.setVerticalRangeMarkersOffset(deltaOffset);
         }
     }
 

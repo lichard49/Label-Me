@@ -123,14 +123,15 @@ public class Controller implements Initializable {
                 mediaPlayer.getTotalDuration().toSeconds()));
 
         for(Node node : waveformList.getChildren()) {
-            MarkeredLineChart<Number, Number> waveform = (MarkeredLineChart) node;
-            waveform.updateTime(mediaPlayer.getCurrentTime().toSeconds());
+            MarkeredLineChart waveform = (MarkeredLineChart) node;
+            waveform.updateTime((float) mediaPlayer.getCurrentTime().toSeconds());
             waveform.layoutPlotChildren();
         }
     }
 
     private void insertWaveform(String column, WaveformFile waveformFile) {
         waveformList.getChildren().add(waveformFile.getWaveform(column, rootPane));
+        waveformFile.getWaveform(column, rootPane).addVerticalRangeMarker(new XYChart.Data<>(2.0f, 10.0f));
     }
 
     private void removeWaveform(String column, WaveformFile waveformFile) {

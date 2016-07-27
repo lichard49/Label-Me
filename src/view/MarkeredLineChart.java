@@ -6,6 +6,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.chart.Axis;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
@@ -18,11 +19,11 @@ import java.util.Objects;
  *
  * Created by richard on 7/25/16.
  */
-public class MarkeredLineChart<X, Y> extends LineChart<X, Y> {
-    private XYChart.Data<X, Y> timeMarker;
-    private ObservableList<XYChart.Data<X, X>> verticalRangeMarkers;
+public class MarkeredLineChart extends LineChart<Number, Number> {
+    private XYChart.Data<Float, Float> timeMarker;
+    private ObservableList<XYChart.Data<Float, Float>> verticalRangeMarkers;
 
-    public MarkeredLineChart(Axis<X> xAxis, Axis<Y> yAxis) {
+    public MarkeredLineChart(NumberAxis xAxis, NumberAxis yAxis) {
         super(xAxis, yAxis);
         verticalRangeMarkers = FXCollections.observableArrayList(data -> new Observable[] {data.XValueProperty()});
         verticalRangeMarkers = FXCollections.observableArrayList(data -> new Observable[] {data.YValueProperty()}); // 2nd type of the range is X type as well
@@ -34,11 +35,18 @@ public class MarkeredLineChart<X, Y> extends LineChart<X, Y> {
         getPlotChildren().add(line);
     }
 
-    public void updateTime(X time) {
+    public void updateTime(Float time) {
         timeMarker.setXValue(time);
     }
 
-    public void addVerticalRangeMarker(XYChart.Data<X, X> marker) {
+    public void setVerticalRangeMarkersOffset(float deltaSeconds) {
+        for(XYChart.Data marker : verticalRangeMarkers) {
+            marker.setXValue((Float) marker.getXValue() + deltaSeconds);
+            marker.setYValue((Float) marker.getYValue() + deltaSeconds);
+        }
+    }
+
+    public void addVerticalRangeMarker(XYChart.Data<Float, Float> marker) {
         Objects.requireNonNull(marker, "the marker must not be null");
         if (verticalRangeMarkers.contains(marker)) return;
 
@@ -52,7 +60,7 @@ public class MarkeredLineChart<X, Y> extends LineChart<X, Y> {
         verticalRangeMarkers.add(marker);
     }
 
-    public void removeVerticalRangeMarker(XYChart.Data<X, X> marker) {
+    public void removeVerticalRangeMarker(XYChart.Data<Float, Float> marker) {
         Objects.requireNonNull(marker, "the marker must not be null");
         if (marker.getNode() != null) {
             getPlotChildren().remove(marker.getNode());
@@ -72,10 +80,10 @@ public class MarkeredLineChart<X, Y> extends LineChart<X, Y> {
         line.setEndY(getBoundsInLocal().getHeight());
         line.toFront();
 
-        for (XYChart.Data<X, X> verticalRangeMarker : verticalRangeMarkers) {
+        for (XYChart.Data<Float, Float> verticalRangeMarker : verticalRangeMarkers) {
             Rectangle rectangle = (Rectangle) verticalRangeMarker.getNode();
-            rectangle.setX( getXAxis().getDisplayPosition(verticalRangeMarker.getXValue()) + 0.5);  // 0.5 for crispness
-            rectangle.setWidth( getXAxis().getDisplayPosition(verticalRangeMarker.getYValue()) - getXAxis().getDisplayPosition(verticalRangeMarker.getXValue()));
+            rectangle.setX(getXAxis().getDisplayPosition(verticalRangeMarker.getXValue()) + 0.5);  // 0.5 for crispness
+            rectangle.setWidth(getXAxis().getDisplayPosition(verticalRangeMarker.getYValue()) - getXAxis().getDisplayPosition(verticalRangeMarker.getXValue()));
             rectangle.setY(0d);
             rectangle.setHeight(getBoundsInLocal().getHeight());
             rectangle.toBack();
