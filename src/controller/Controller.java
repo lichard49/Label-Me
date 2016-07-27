@@ -11,6 +11,8 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
@@ -47,6 +49,7 @@ public class Controller implements Initializable {
     private MediaPlayer mediaPlayer;
 
     private Map<String, WaveformFile> waveformFiles;
+    private ContextMenu waveformListContextMenu;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -89,6 +92,23 @@ public class Controller implements Initializable {
         });
 
         waveformFiles = new LinkedHashMap<>();
+        waveformListContextMenu = new ContextMenu();
+        MenuItem addLabel = new MenuItem("Add label");
+        waveformListContextMenu.getItems().add(addLabel);
+        waveformList.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if(event.getButton() == MouseButton.PRIMARY) {
+                    if(waveformListContextMenu.isShowing()) {
+                        waveformListContextMenu.hide();
+                    } else {
+                        // move waveform time ticker
+                    }
+                } else if(event.getButton() == MouseButton.SECONDARY) {
+                    waveformListContextMenu.show(waveformList, event.getScreenX(), event.getScreenY());
+                }
+            }
+        });
     }
 
     protected void setStage(Stage stage) {
@@ -131,7 +151,6 @@ public class Controller implements Initializable {
 
     private void insertWaveform(String column, WaveformFile waveformFile) {
         waveformList.getChildren().add(waveformFile.getWaveform(column, rootPane));
-        waveformFile.getWaveform(column, rootPane).addVerticalRangeMarker(new XYChart.Data<>(2.0f, 10.0f));
     }
 
     private void removeWaveform(String column, WaveformFile waveformFile) {
