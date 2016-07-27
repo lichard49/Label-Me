@@ -31,6 +31,7 @@ import javafx.util.Pair;
 import model.WaveformFile;
 import view.MarkeredLineChart;
 import view.MixedTreeCell;
+import view.UserInterfaceElements;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,9 +53,9 @@ public class Controller implements Initializable {
 
     private Stage stage;
     private MediaPlayer mediaPlayer;
+    private UserInterfaceElements ui;
 
     private Map<String, WaveformFile> waveformFiles;
-    private ContextMenu waveformListContextMenu;
     private List<XYChart.Data<Float, Float>> labelList;
 
     @Override
@@ -63,6 +64,8 @@ public class Controller implements Initializable {
         mediaView.fitWidthProperty().bind(mediaViewContainer.prefWidthProperty());
         mediaView.fitHeightProperty().bind(mediaViewContainer.prefHeightProperty());
         mediaView.setPreserveRatio(true);
+
+        ui = UserInterfaceElements.getInstance(this);
 
         TreeItem<String> rootItem = new TreeItem<>("Resources");
         rootItem.setExpanded(true);
@@ -99,71 +102,28 @@ public class Controller implements Initializable {
 
         waveformFiles = new LinkedHashMap<>();
         labelList = new LinkedList<>();
-        waveformListContextMenu = new ContextMenu();
-        MenuItem addLabel = new MenuItem("Add label");
-        addLabel.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                // Create the custom dialog.
-                Dialog<XYChart.Data<Float, Float>> dialog = new Dialog<>();
-                dialog.setTitle("Add a label");
-                dialog.setHeaderText("Select start/end times for the label");
 
-                ButtonType addButton = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
-                dialog.getDialogPane().getButtonTypes().addAll(addButton, ButtonType.CANCEL);
-
-                GridPane grid = new GridPane();
-                grid.setHgap(10);
-                grid.setVgap(10);
-                grid.setPadding(new Insets(20, 150, 10, 10));
-
-                TextField startTime = new TextField();
-                startTime.setPromptText("Start time (seconds)");
-                TextField endTime = new TextField();
-                endTime.setPromptText("End time (seconds)");
-
-                grid.add(new Label("Start time (seconds):"), 0, 0);
-                grid.add(startTime, 1, 0);
-                grid.add(new Label("End time (seconds):"), 0, 1);
-                grid.add(endTime, 1, 1);
-
-                // TODO validation on start/end times
-
-                Platform.runLater(() -> startTime.requestFocus());
-                dialog.getDialogPane().setContent(grid);
-                dialog.setResultConverter(dialogButton -> {
-                    if (dialogButton == addButton) {
-                        return new XYChart.Data<>(Float.parseFloat(startTime.getText()), Float.parseFloat(endTime.getText()));
-                    }
-                    return null;
-                });
-
-                Optional<XYChart.Data<Float, Float>> result = dialog.showAndWait();
-                if(result.isPresent()) {
-                    labelList.add(result.get());
-                    for(WaveformFile waveformFile : waveformFiles.values()) {
-                        waveformFile.addLabel(result.get());
-                    }
-                }
-            }
-        });
-        waveformListContextMenu.getItems().add(addLabel);
         waveformList.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 if(event.getButton() == MouseButton.PRIMARY) {
-                    if(waveformListContextMenu.isShowing()) {
-                        waveformListContextMenu.hide();
+                    if(ui.getWaveformListContextMenu().isShowing()) {
+                        ui.getWaveformListContextMenu().hide();
                     } else {
                         // TODO move waveform time ticker
                     }
                 } else if(event.getButton() == MouseButton.SECONDARY) {
-                    waveformListContextMenu.show(waveformList, event.getScreenX(), event.getScreenY());
+                    ui.getWaveformListContextMenu().show(waveformList, event.getScreenX(), event.getScreenY());
                 }
             }
         });
+    }
 
-        // TODO offset time is a WaveformFile level property, so maintain a list here with global time and make each WaveformFile map a global label to a post offset label
+    public void addLabel(XYChart.Data<Float, Float> label) {
+        labelList.add(label);
+        for(WaveformFile waveformFile : waveformFiles.values()) {
+            waveformFile.addLabel(label);
+        }
     }
 
     protected void setStage(Stage stage) {
@@ -214,10 +174,7 @@ public class Controller implements Initializable {
 
     @FXML
     private void openVideoFile() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open Video File");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("MP4", "*.mp4"));
-        File videoFile = fileChooser.showOpenDialog(stage);
+        File videoFile = ui.getVideoFileChooser().showOpenDialog(stage);
 
         if(videoFile != null) {
             final Media videoMedia = new Media(videoFile.toURI().toString());
@@ -247,10 +204,7 @@ public class Controller implements Initializable {
 
     @FXML
     private void openWaveformFile() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open Waveform File");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
-        File file = fileChooser.showOpenDialog(stage);
+        File file = ui.getWaveformFileChooser().showOpenDialog(stage);
 
         if(file != null) {
             try {
@@ -279,13 +233,7 @@ public class Controller implements Initializable {
     }
 
     private String chooseTimeColumn(WaveformFile waveformFile) {
-        ChoiceDialog<String> dialog = new ChoiceDialog<>(waveformFile.getColumnHeaders().iterator().next(),
-                waveformFile.getColumnHeaders());
-        dialog.setTitle("Importing Waveform File");
-        dialog.setHeaderText("Importing " + waveformFile.getFilename());
-        dialog.setContentText("Choose time column: ");
-
-        Optional<String> result = dialog.showAndWait();
+        Optional<String> result = ui.getChooseTimeColumnDialog(waveformFile).showAndWait();
         if (result.isPresent()){
             return result.get();
         }
