@@ -2,6 +2,7 @@ package view;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.beans.binding.FloatBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.chart.Axis;
@@ -39,13 +40,6 @@ public class MarkeredLineChart extends LineChart<Number, Number> {
         timeMarker.setXValue(time);
     }
 
-    public void setVerticalRangeMarkersOffset(float deltaSeconds) {
-        for(XYChart.Data marker : verticalRangeMarkers) {
-            marker.setXValue((Float) marker.getXValue() + deltaSeconds);
-            marker.setYValue((Float) marker.getYValue() + deltaSeconds);
-        }
-    }
-
     public void addVerticalRangeMarker(XYChart.Data<Float, Float> marker) {
         Objects.requireNonNull(marker, "the marker must not be null");
         if (verticalRangeMarkers.contains(marker)) return;
@@ -54,7 +48,7 @@ public class MarkeredLineChart extends LineChart<Number, Number> {
         rectangle.setStroke(Color.TRANSPARENT);
         rectangle.setFill(Color.BLUE.deriveColor(1, 1, 1, 0.2));
 
-        marker.setNode( rectangle);
+        marker.setNode(rectangle);
 
         getPlotChildren().add(rectangle);
         verticalRangeMarkers.add(marker);

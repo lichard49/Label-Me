@@ -3,6 +3,8 @@ package model;
 import javafx.scene.chart.Axis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.effect.FloatMap;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
 import view.MarkeredLineChart;
 
@@ -27,11 +29,10 @@ public class WaveformFile {
     private Duration offsetTime;
     private Duration previousOffsetTime;
     private Map<String, MarkeredLineChart> waveforms;
+    private List<XYChart.Data<Float, Float>> labels;
 
     public WaveformFile(File file) throws IOException, ParseException, NumberFormatException {
         filename = file.getName();
-        offsetTime = Duration.ZERO;
-
         int numColumns = -1;
         int lineNumber = 0;
         coordinates = new HashMap<>();
@@ -61,6 +62,9 @@ public class WaveformFile {
         }
 
         waveforms = new HashMap<>();
+        labels = new LinkedList<>();
+        offsetTime = Duration.ZERO;
+        previousOffsetTime = Duration.ZERO;
     }
 
     public MarkeredLineChart getWaveform(String column, Pane rootPane) {
@@ -77,6 +81,9 @@ public class WaveformFile {
             waveform.getData().add(series);
             waveform.setPrefHeight(225);
             waveform.prefWidthProperty().bind(rootPane.widthProperty().subtract(265));
+            for(XYChart.Data<Float, Float> label : labels) {
+                waveform.addVerticalRangeMarker(label);
+            }
             waveforms.put(column, waveform);
         }
         return waveforms.get(column);
@@ -89,16 +96,22 @@ public class WaveformFile {
             previousOffsetTime = Duration.ZERO;
         }
         offsetTime = Duration.ZERO.plusMillis((int)(seconds*1000));
-
         float deltaOffset = offsetTime.getSeconds() - previousOffsetTime.getSeconds();
+
         for(MarkeredLineChart waveform : waveforms.values()) {
             XYChart.Series series = waveform.getData().get(0); // each line chart should only have one series
             for(int i = 0; i < series.getData().size(); i++) {
                 XYChart.Data point = (XYChart.Data) series.getData().get(i);
                 point.setXValue((Float) point.getXValue() + deltaOffset);
             }
+        }
+    }
 
-            waveform.setVerticalRangeMarkersOffset(deltaOffset);
+    public void addLabel(XYChart.Data<Float, Float> label) {
+        labels.add(label);
+        for(MarkeredLineChart waveform : waveforms.values()) {
+            waveform.addVerticalRangeMarker(label);
+            waveform.layoutPlotChildren();
         }
     }
 

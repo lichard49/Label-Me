@@ -1,11 +1,14 @@
 package controller;
 
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
@@ -14,6 +17,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
@@ -23,6 +27,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
+import javafx.util.Pair;
 import model.WaveformFile;
 import view.MarkeredLineChart;
 import view.MixedTreeCell;
@@ -50,6 +55,7 @@ public class Controller implements Initializable {
 
     private Map<String, WaveformFile> waveformFiles;
     private ContextMenu waveformListContextMenu;
+    private List<XYChart.Data<Float, Float>> labelList;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -92,8 +98,55 @@ public class Controller implements Initializable {
         });
 
         waveformFiles = new LinkedHashMap<>();
+        labelList = new LinkedList<>();
         waveformListContextMenu = new ContextMenu();
         MenuItem addLabel = new MenuItem("Add label");
+        addLabel.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                // Create the custom dialog.
+                Dialog<XYChart.Data<Float, Float>> dialog = new Dialog<>();
+                dialog.setTitle("Add a label");
+                dialog.setHeaderText("Select start/end times for the label");
+
+                ButtonType addButton = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+                dialog.getDialogPane().getButtonTypes().addAll(addButton, ButtonType.CANCEL);
+
+                GridPane grid = new GridPane();
+                grid.setHgap(10);
+                grid.setVgap(10);
+                grid.setPadding(new Insets(20, 150, 10, 10));
+
+                TextField startTime = new TextField();
+                startTime.setPromptText("Start time (seconds)");
+                TextField endTime = new TextField();
+                endTime.setPromptText("End time (seconds)");
+
+                grid.add(new Label("Start time (seconds):"), 0, 0);
+                grid.add(startTime, 1, 0);
+                grid.add(new Label("End time (seconds):"), 0, 1);
+                grid.add(endTime, 1, 1);
+
+                // TODO validation on start/end times
+
+                Platform.runLater(() -> startTime.requestFocus());
+                dialog.getDialogPane().setContent(grid);
+                dialog.setResultConverter(dialogButton -> {
+                    if (dialogButton == addButton) {
+                        return new XYChart.Data<>(Float.parseFloat(startTime.getText()), Float.parseFloat(endTime.getText()));
+                    }
+                    return null;
+                });
+
+                Optional<XYChart.Data<Float, Float>> result = dialog.showAndWait();
+                if(result.isPresent()) {
+                    labelList.add(result.get());
+                    for(WaveformFile waveformFile : waveformFiles.values()) {
+                        waveformFile.addLabel(result.get());
+                    }
+                }
+            }
+        });
         waveformListContextMenu.getItems().add(addLabel);
         waveformList.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
             @Override
@@ -102,13 +155,15 @@ public class Controller implements Initializable {
                     if(waveformListContextMenu.isShowing()) {
                         waveformListContextMenu.hide();
                     } else {
-                        // move waveform time ticker
+                        // TODO move waveform time ticker
                     }
                 } else if(event.getButton() == MouseButton.SECONDARY) {
                     waveformListContextMenu.show(waveformList, event.getScreenX(), event.getScreenY());
                 }
             }
         });
+
+        // TODO offset time is a WaveformFile level property, so maintain a list here with global time and make each WaveformFile map a global label to a post offset label
     }
 
     protected void setStage(Stage stage) {
@@ -209,6 +264,9 @@ public class Controller implements Initializable {
                     }
                     waveformFiles.put(waveformFile.getFilename(), waveformFile);
                     addWaveformToResourceTree(waveformFile);
+                    for(XYChart.Data<Float, Float> label : labelList) {
+                        waveformFile.addLabel(label);
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
