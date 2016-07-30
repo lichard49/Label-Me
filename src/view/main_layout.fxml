@@ -19,7 +19,7 @@
    <center>
       <SplitPane dividerPositions="0.5" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" orientation="VERTICAL">
         <items>
-            <BorderPane fx:id="mediaViewContainer">
+            <BorderPane fx:id="mediaViewContainer" style="-fx-background-color: #FF0000;">
                <center>
                   <MediaView fx:id="mediaView" fitHeight="200.0" fitWidth="200.0" BorderPane.alignment="CENTER">
                      <viewport>
@@ -31,11 +31,15 @@
                   </MediaView>
                </center>
             </BorderPane>
-            <ScrollPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="-Infinity">
-               <content>
-                  <VBox fx:id="waveformList" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" />
-               </content>
-            </ScrollPane>
+            <BorderPane>
+               <center>
+                  <ScrollPane fx:id="waveformScroller" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" style="-fx-background-color: #0000FF;">
+                     <content>
+                        <VBox fx:id="waveformList" alignment="CENTER" maxWidth="1.7976931348623157E308" minHeight="-Infinity" style="-fx-background-color: #FFFF00;" />
+                     </content>
+                  </ScrollPane>
+               </center>
+            </BorderPane>
         </items>
       </SplitPane>
    </center>

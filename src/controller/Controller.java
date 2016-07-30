@@ -29,6 +29,14 @@ import javafx.util.Callback;
 import javafx.util.Duration;
 import javafx.util.Pair;
 import model.WaveformFile;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberTickUnitSource;
+import org.jfree.chart.fx.ChartViewer;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 import view.MarkeredLineChart;
 import view.MixedTreeCell;
 import view.UserInterfaceElements;
@@ -50,6 +58,7 @@ public class Controller implements Initializable {
     @FXML private Text videoTime;
     @FXML private VBox waveformList;
     @FXML private TreeView resourceTree;
+    @FXML private ScrollPane waveformScroller;
 
     private Stage stage;
     private MediaPlayer mediaPlayer;
@@ -117,6 +126,8 @@ public class Controller implements Initializable {
                 }
             }
         });
+        waveformScroller.setFitToWidth(true);
+        waveformScroller.setFitToHeight(true);
     }
 
     public void addLabel(XYChart.Data<Float, Float> label) {
@@ -165,11 +176,52 @@ public class Controller implements Initializable {
     }
 
     private void insertWaveform(String column, WaveformFile waveformFile) {
-        waveformList.getChildren().add(waveformFile.getWaveform(column, rootPane));
+        try {
+            long start = System.currentTimeMillis();
+            XYSeries series = waveformFile.getWaveform(column, rootPane);
+            long stop = System.currentTimeMillis();
+            System.out.println("1: " + (stop-start));
+
+            start = System.currentTimeMillis();
+            XYDataset dataset = new XYSeriesCollection(series);
+            stop = System.currentTimeMillis();
+            System.out.println("1b: " + (stop-start));
+
+            start = System.currentTimeMillis();
+            JFreeChart lineChart = ChartFactory.createXYLineChart(
+                    "hi",
+                    "Category",
+                    "Score",
+                    dataset,
+                    PlotOrientation.VERTICAL,
+                    false, false, false);
+            stop = System.currentTimeMillis();
+            System.out.println("2: " + (stop-start));
+
+            start = System.currentTimeMillis();
+            ChartViewer viewer = new ChartViewer(lineChart);
+            stop = System.currentTimeMillis();
+            System.out.println("3: " + (stop-start));
+
+            viewer.prefWidthProperty().bind(waveformList.prefWidthProperty());
+
+            start = System.currentTimeMillis();
+            waveformList.getChildren().add(viewer);
+            stop = System.currentTimeMillis();
+            System.out.println("4: " + (stop-start));
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
     }
 
     private void removeWaveform(String column, WaveformFile waveformFile) {
-        waveformList.getChildren().remove(waveformFile.getWaveform(column, rootPane));
+        /*
+        try {
+            waveformList.getChildren().remove(waveformFile.getWaveform(column, rootPane));
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
+        */
     }
 
     @FXML
@@ -208,7 +260,7 @@ public class Controller implements Initializable {
 
         if(file != null) {
             try {
-                WaveformFile waveformFile = new WaveformFile(file);
+                WaveformFile waveformFile = new WaveformFile(file, "time");
                 String timeColumn = chooseTimeColumn(waveformFile);
                 if (timeColumn != null) {
                     try {

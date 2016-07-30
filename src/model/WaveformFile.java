@@ -6,6 +6,8 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.effect.FloatMap;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
 import view.MarkeredLineChart;
 
 import java.io.BufferedReader;
@@ -21,31 +23,38 @@ import java.util.*;
  * Created by richard on 7/24/16.
  */
 public class WaveformFile {
-    private Map<String, List<Float>> coordinates;
-    private int numLines;
     private String filename;
     private String timeColumn;
 
     private Duration offsetTime;
     private Duration previousOffsetTime;
-    private Map<String, MarkeredLineChart> waveforms;
+    private Map<String, XYSeries> waveforms;
     private List<XYChart.Data<Float, Float>> labels;
 
-    public WaveformFile(File file) throws IOException, ParseException, NumberFormatException {
+    public WaveformFile(File file, String timeColumn) throws IOException, ParseException, NumberFormatException,
+            IndexOutOfBoundsException {
         filename = file.getName();
         int numColumns = -1;
         int lineNumber = 0;
-        coordinates = new HashMap<>();
+        this.timeColumn = timeColumn;
 
         BufferedReader br = new BufferedReader(new FileReader(file));
         String line;
+        Map<Integer, String> indexToColumnHeader = new HashMap<>();
+        int timeColumnIndex = -1;
+        waveforms = new HashMap<>();
 
         while ((line = br.readLine()) != null) {
             String[] lineParts = line.split(",");
             if(numColumns == -1) {
                 numColumns = lineParts.length;
-                for(String columnHeader : lineParts) {
-                    coordinates.put(columnHeader, new LinkedList<>());
+                for(int i = 0; i < lineParts.length; i++) {
+                    String columnHeader = lineParts[i];
+                    waveforms.put(columnHeader, new XYSeries(columnHeader));
+                    indexToColumnHeader.put(i, columnHeader);
+                    if(columnHeader.equals(timeColumn)) {
+                        timeColumnIndex = i;
+                    }
                 }
             } else if(lineParts.length != numColumns) {
                 if(!(lineParts.length == 1 && lineParts[0].trim().length() == 0)) {
@@ -53,38 +62,25 @@ public class WaveformFile {
                             + " but found " + lineParts.length, lineNumber);
                 }
             } else {
-                Iterator<String> headers = getColumnHeaders().iterator();
-                int index = 0;
-                while(headers.hasNext()) {
-                    coordinates.get(headers.next()).add(Float.parseFloat(lineParts[index++]));
+                if(timeColumnIndex < 0 || timeColumnIndex >= lineParts.length) {
+                    throw new IndexOutOfBoundsException("Time column index " + timeColumnIndex + " is invalid");
+                }
+                float x = Float.parseFloat(lineParts[timeColumnIndex]);
+                for(int i = 0; i < numColumns; i++) {
+                    float y = Float.parseFloat(lineParts[i]);
+                    waveforms.get(indexToColumnHeader.get(i)).add(x, y);
                 }
             }
         }
 
-        waveforms = new HashMap<>();
         labels = new LinkedList<>();
         offsetTime = Duration.ZERO;
         previousOffsetTime = Duration.ZERO;
     }
 
-    public MarkeredLineChart getWaveform(String column, Pane rootPane) {
+    public XYSeries getWaveform(String column, Pane rootPane) throws InvalidKeyException {
         if(!waveforms.containsKey(column)) {
-            MarkeredLineChart waveform = new MarkeredLineChart(new NumberAxis(), new NumberAxis());
-            XYChart.Series series = new XYChart.Series();
-
-            for(int i = 0; i < getColumn(timeColumn).size(); i++) {
-                series.getData().add(new XYChart.Data<>(getColumn(timeColumn).get(i)+offsetTime.getSeconds(),
-                        getColumn(column).get(i)));
-            }
-
-            waveform.setLegendVisible(false);
-            waveform.getData().add(series);
-            waveform.setPrefHeight(225);
-            waveform.prefWidthProperty().bind(rootPane.widthProperty().subtract(265));
-            for(XYChart.Data<Float, Float> label : labels) {
-                waveform.addVerticalRangeMarker(label);
-            }
-            waveforms.put(column, waveform);
+            throw new InvalidKeyException("No such column " + column);
         }
         return waveforms.get(column);
     }
@@ -98,6 +94,7 @@ public class WaveformFile {
         offsetTime = Duration.ZERO.plusMillis((int)(seconds*1000));
         float deltaOffset = offsetTime.getSeconds() - previousOffsetTime.getSeconds();
 
+        /*
         for(MarkeredLineChart waveform : waveforms.values()) {
             XYChart.Series series = waveform.getData().get(0); // each line chart should only have one series
             for(int i = 0; i < series.getData().size(); i++) {
@@ -105,14 +102,19 @@ public class WaveformFile {
                 point.setXValue((Float) point.getXValue() + deltaOffset);
             }
         }
+        */
+        // TODO figure out implementation for labeling
     }
 
     public void addLabel(XYChart.Data<Float, Float> label) {
         labels.add(label);
+        /*
         for(MarkeredLineChart waveform : waveforms.values()) {
             waveform.addVerticalRangeMarker(label);
             waveform.layoutPlotChildren();
         }
+        */
+        // TODO figure out implementation for labeling
     }
 
     public void setTimeColumn(String column) throws InvalidKeyException {
@@ -120,14 +122,15 @@ public class WaveformFile {
             throw new InvalidKeyException(column + " is not an option for time column.");
         }
         timeColumn = column;
+        // TODO update all waveforms
     }
 
-    public List<Float> getTimeColumn() {
+    public XYSeries getTimeColumn() {
         return getColumn(timeColumn);
     }
 
-    public List<Float> getColumn(String column) {
-        return coordinates.get(column);
+    public XYSeries getColumn(String column) {
+        return waveforms.get(column);
     }
 
     public String getFilename() {
@@ -139,10 +142,10 @@ public class WaveformFile {
     }
 
     public int getNumColumns() {
-        return coordinates.size();
+        return waveforms.size();
     }
 
     public Set<String> getColumnHeaders() {
-        return coordinates.keySet();
+        return waveforms.keySet();
     }
 }
