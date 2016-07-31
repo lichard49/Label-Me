@@ -144,8 +144,8 @@ public class UserInterfaceElements {
     public ContextMenu getWaveformListContextMenu(XYChart.Data<Float, Float> label) {
         selectedLabel = label;
 
-        waveformListContextMenu.getItems().get(1).setDisable(label.getYValue() == null);
-        waveformListContextMenu.getItems().get(2).setDisable(label.getYValue() == null);
+        waveformListContextMenu.getItems().get(1).setDisable(label == null || label.getYValue() == null);
+        waveformListContextMenu.getItems().get(2).setDisable(label == null || label.getYValue() == null);
 
         return waveformListContextMenu;
     }

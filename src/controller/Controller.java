@@ -111,7 +111,10 @@ public class Controller implements Initializable {
                     if(ui.getWaveformListContextMenu().isShowing()) {
                         ui.getWaveformListContextMenu().hide();
                     } else {
-                        // TODO move waveform time ticker
+                        double localX = WaveformFile.getXAxis().sceneToLocal(event.getSceneX(), event.getY()).getX();
+                        double time = WaveformFile.getXAxis().getValueForDisplay(localX).doubleValue();
+                        mediaPlayer.seek(Duration.seconds(time));
+                        updateVideoTime();
                     }
                 } else if(event.getButton() == MouseButton.SECONDARY) {
                     double localX = WaveformFile.getXAxis().sceneToLocal(event.getSceneX(), event.getY()).getX();
