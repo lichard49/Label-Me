@@ -34,6 +34,7 @@ import view.MixedTreeCell;
 import view.UserInterfaceElements;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.security.InvalidKeyException;
@@ -140,7 +141,7 @@ public class Controller implements Initializable {
     }
 
     public void editLabel(XYChart.Data<Float, Float> oldLabel, XYChart.Data<Float, Float> newLabel) {
-        // TODO create a model class for labels for easier look up 
+        // TODO create a model class for labels for easier look up
         for(XYChart.Data<Float, Float> label : labelList) {
             if(label.getXValue().equals(oldLabel.getXValue()) && label.getYValue().equals(oldLabel.getYValue())) {
                 label.setXValue(newLabel.getXValue());
@@ -267,5 +268,51 @@ public class Controller implements Initializable {
             return result.get();
         }
         return null;
+    }
+
+    @FXML
+    private void saveLabels() {
+        int totalTime = 0;
+        if(mediaPlayer != null) {
+            totalTime = Math.max(totalTime, (int) mediaPlayer.getTotalDuration().toSeconds());
+        } else {
+            // TODO use length of waveforms
+        }
+
+        boolean[] labelVector = new boolean[totalTime];
+        for(int i = 0; i < labelVector.length; i++) {
+            labelVector[i] = false;
+        }
+        for(XYChart.Data<Float, Float> label : labelList) {
+            for(int i = Math.round(label.getXValue()); i < Math.round(label.getYValue()); i++) {
+                labelVector[i] = true;
+            }
+        }
+
+        File file = ui.getLabelFileChooser().showSaveDialog(stage);
+        if(!file.getPath().toLowerCase().endsWith(".csv")) {
+            file = new File(file.getPath() + ".csv");
+        }
+        try {
+            file.createNewFile();
+            FileWriter writer = new FileWriter(file);
+            writer.write("time,label\n");
+
+            StringBuilder line = new StringBuilder();
+            for(int i = 0; i < labelVector.length; i++) {
+                line.setLength(0);
+                line.append(i);
+                line.append(',');
+                line.append((labelVector[i] ? 1 : 0));
+                line.append('\n');
+
+                writer.write(line.toString());
+            }
+
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

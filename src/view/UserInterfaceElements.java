@@ -33,6 +33,7 @@ public class UserInterfaceElements {
     private ContextMenu waveformListContextMenu;
     private FileChooser videoFileChooser;
     private FileChooser waveformFileChooser;
+    private FileChooser labelFileChooser;
     private ChoiceDialog<String> chooseTimeColumnDialog;
 
     private UserInterfaceElements(Controller controller) {
@@ -42,6 +43,7 @@ public class UserInterfaceElements {
         createWaveformListContextMenu();
         createVideoFileChooser();
         createWaveformFileChooser();
+        createLabelFileChooser();
         createChooseTimeColumnDialog();
     }
 
@@ -166,6 +168,16 @@ public class UserInterfaceElements {
 
     public FileChooser getWaveformFileChooser() {
         return waveformFileChooser;
+    }
+
+    private void createLabelFileChooser() {
+        labelFileChooser = new FileChooser();
+        labelFileChooser.setTitle("Save Label File");
+        labelFileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
+    }
+
+    public FileChooser getLabelFileChooser() {
+        return labelFileChooser;
     }
 
     private void createChooseTimeColumnDialog() {

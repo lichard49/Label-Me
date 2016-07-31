@@ -57,6 +57,7 @@
             <items>
                   <MenuItem mnemonicParsing="false" onAction="#openVideoFile" text="Open Video" />
                   <MenuItem mnemonicParsing="false" onAction="#openWaveformFile" text="Open Waveform" />
+                  <MenuItem mnemonicParsing="false" onAction="#saveLabels" text="Save Labels" />
               <MenuItem mnemonicParsing="false" text="Close" />
             </items>
           </Menu>
