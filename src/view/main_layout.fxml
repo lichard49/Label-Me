@@ -19,7 +19,7 @@
    <center>
       <SplitPane dividerPositions="0.5" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" orientation="VERTICAL">
         <items>
-            <BorderPane fx:id="mediaViewContainer">
+            <BorderPane fx:id="mediaViewContainer" prefHeight="400.0" prefWidth="400.0">
                <center>
                   <MediaView fx:id="mediaView" fitHeight="200.0" fitWidth="200.0" BorderPane.alignment="CENTER">
                      <viewport>

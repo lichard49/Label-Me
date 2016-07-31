@@ -113,7 +113,17 @@ public class Controller implements Initializable {
                         // TODO move waveform time ticker
                     }
                 } else if(event.getButton() == MouseButton.SECONDARY) {
-                    ui.getWaveformListContextMenu().show(waveformList, event.getScreenX(), event.getScreenY());
+                    double localX = WaveformFile.getXAxis().sceneToLocal(event.getSceneX(), event.getY()).getX();
+                    double time = WaveformFile.getXAxis().getValueForDisplay(localX).doubleValue();
+                    XYChart.Data<Float, Float> selectedLabel = null;
+                    for(XYChart.Data<Float, Float> label : labelList) {
+                        if(time >= label.getXValue() && time <= label.getYValue()) {
+                            selectedLabel = label;
+                            break;
+                        }
+                    }
+                    ui.getWaveformListContextMenu(selectedLabel).show(waveformList, event.getScreenX(),
+                            event.getScreenY());
                 }
             }
         });

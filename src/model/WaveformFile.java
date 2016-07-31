@@ -21,6 +21,8 @@ import java.util.*;
  * Created by richard on 7/24/16.
  */
 public class WaveformFile {
+    private static final NumberAxis X_AXIS = new NumberAxis();
+
     private Map<String, List<Float>> coordinates;
     private int numLines;
     private String filename;
@@ -67,9 +69,13 @@ public class WaveformFile {
         previousOffsetTime = Duration.ZERO;
     }
 
+    public static NumberAxis getXAxis() {
+        return X_AXIS;
+    }
+
     public MarkeredLineChart getWaveform(String column, Pane rootPane) {
         if(!waveforms.containsKey(column)) {
-            MarkeredLineChart waveform = new MarkeredLineChart(new NumberAxis(), new NumberAxis());
+            MarkeredLineChart waveform = new MarkeredLineChart(X_AXIS, new NumberAxis());
             XYChart.Series series = new XYChart.Series();
 
             for(int i = 0; i < getColumn(timeColumn).size(); i++) {

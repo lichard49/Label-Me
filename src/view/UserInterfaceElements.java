@@ -46,6 +46,11 @@ public class UserInterfaceElements {
         waveformListContextMenu = new ContextMenu();
         MenuItem addLabel = new MenuItem("Add label");
         waveformListContextMenu.getItems().add(addLabel);
+        MenuItem editLabel = new MenuItem("Edit label");
+        waveformListContextMenu.getItems().add(editLabel);
+        MenuItem deleteLabel = new MenuItem("Delete label");
+        waveformListContextMenu.getItems().add(deleteLabel);
+
         addLabel.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -92,6 +97,13 @@ public class UserInterfaceElements {
     }
 
     public ContextMenu getWaveformListContextMenu() {
+        return getWaveformListContextMenu(null);
+    }
+
+    public ContextMenu getWaveformListContextMenu(XYChart.Data<Float, Float> label) {
+        waveformListContextMenu.getItems().get(1).setDisable(label == null);
+        waveformListContextMenu.getItems().get(2).setDisable(label == null);
+
         return waveformListContextMenu;
     }
 
