@@ -122,6 +122,9 @@ public class Controller implements Initializable {
                             break;
                         }
                     }
+                    if(selectedLabel == null) {
+                        selectedLabel = new XYChart.Data<>((float) time, null);
+                    }
                     ui.getWaveformListContextMenu(selectedLabel).show(waveformList, event.getScreenX(),
                             event.getScreenY());
                 }
@@ -134,6 +137,22 @@ public class Controller implements Initializable {
         for(WaveformFile waveformFile : waveformFiles.values()) {
             waveformFile.addLabel(label);
         }
+    }
+
+    public void editLabel(XYChart.Data<Float, Float> oldLabel, XYChart.Data<Float, Float> newLabel) {
+        // TODO create a model class for labels for easier look up 
+        for(XYChart.Data<Float, Float> label : labelList) {
+            if(label.getXValue().equals(oldLabel.getXValue()) && label.getYValue().equals(oldLabel.getYValue())) {
+                label.setXValue(newLabel.getXValue());
+                label.setYValue(newLabel.getYValue());
+                break;
+            }
+        }
+    }
+
+    public void deleteLabel(XYChart.Data<Float, Float> label) {
+        // TODO make label list an observable list which updates all waveforms
+        System.out.println("Delete " + label);
     }
 
     protected void setStage(Stage stage) {

@@ -28,6 +28,8 @@ public class UserInterfaceElements {
     }
 
     private Controller controller;
+    private Dialog<XYChart.Data<Float, Float>> editLabelDialog;
+    private XYChart.Data<Float, Float> selectedLabel;
     private ContextMenu waveformListContextMenu;
     private FileChooser videoFileChooser;
     private FileChooser waveformFileChooser;
@@ -36,10 +38,63 @@ public class UserInterfaceElements {
     private UserInterfaceElements(Controller controller) {
         this.controller = controller;
 
+        createEditLabelDialog();
         createWaveformListContextMenu();
         createVideoFileChooser();
         createWaveformFileChooser();
         createChooseTimeColumnDialog();
+    }
+
+    private void createEditLabelDialog() {
+        editLabelDialog = new Dialog<>();
+        editLabelDialog.setTitle("Add a label");
+        editLabelDialog.setHeaderText("Select start/end times for the label");
+
+        ButtonType addButton = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+        editLabelDialog.getDialogPane().getButtonTypes().addAll(addButton, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField startTime = new TextField();
+        startTime.setPromptText("Start time (seconds)");
+        TextField endTime = new TextField();
+        endTime.setPromptText("End time (seconds)");
+
+        grid.add(new Label("Start time (seconds):"), 0, 0);
+        grid.add(startTime, 1, 0);
+        grid.add(new Label("End time (seconds):"), 0, 1);
+        grid.add(endTime, 1, 1);
+
+        // TODO validation on start/end times
+
+        Platform.runLater(() -> startTime.requestFocus());
+
+        editLabelDialog.getDialogPane().setContent(grid);
+        editLabelDialog.setResultConverter(dialogButton -> {
+            if (dialogButton == addButton) {
+                return new XYChart.Data<>(Float.parseFloat(startTime.getText()), Float.parseFloat(endTime.getText()));
+            }
+            return null;
+        });
+
+    }
+
+    private Optional<XYChart.Data<Float, Float>> showEditLabelDialog(Float start, Float end) {
+        GridPane grid = (GridPane) editLabelDialog.getDialogPane().getContent();
+        TextField startTime = (TextField) grid.getChildren().get(1);
+        TextField endTime = (TextField) grid.getChildren().get(3);
+
+        if(start != null) {
+            startTime.setText(start.toString());
+        }
+        if(end != null) {
+            endTime.setText(end.toString());
+        }
+
+        return editLabelDialog.showAndWait();
     }
 
     private void createWaveformListContextMenu() {
@@ -54,44 +109,28 @@ public class UserInterfaceElements {
         addLabel.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                // Create the custom dialog.
-                Dialog<XYChart.Data<Float, Float>> dialog = new Dialog<>();
-                dialog.setTitle("Add a label");
-                dialog.setHeaderText("Select start/end times for the label");
-
-                ButtonType addButton = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
-                dialog.getDialogPane().getButtonTypes().addAll(addButton, ButtonType.CANCEL);
-
-                GridPane grid = new GridPane();
-                grid.setHgap(10);
-                grid.setVgap(10);
-                grid.setPadding(new Insets(20, 150, 10, 10));
-
-                TextField startTime = new TextField();
-                startTime.setPromptText("Start time (seconds)");
-                TextField endTime = new TextField();
-                endTime.setPromptText("End time (seconds)");
-
-                grid.add(new Label("Start time (seconds):"), 0, 0);
-                grid.add(startTime, 1, 0);
-                grid.add(new Label("End time (seconds):"), 0, 1);
-                grid.add(endTime, 1, 1);
-
-                // TODO validation on start/end times
-
-                Platform.runLater(() -> startTime.requestFocus());
-                dialog.getDialogPane().setContent(grid);
-                dialog.setResultConverter(dialogButton -> {
-                    if (dialogButton == addButton) {
-                        return new XYChart.Data<>(Float.parseFloat(startTime.getText()), Float.parseFloat(endTime.getText()));
-                    }
-                    return null;
-                });
-
-                Optional<XYChart.Data<Float, Float>> result = dialog.showAndWait();
+                Optional<XYChart.Data<Float, Float>> result = showEditLabelDialog(selectedLabel.getXValue(), null);
                 if(result.isPresent()) {
                     controller.addLabel(result.get());
                 }
+            }
+        });
+        editLabel.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                XYChart.Data<Float, Float> oldLabel = new XYChart.Data<>(selectedLabel.getXValue(),
+                        selectedLabel.getYValue());
+                Optional<XYChart.Data<Float, Float>> result = showEditLabelDialog(selectedLabel.getXValue(),
+                        selectedLabel.getYValue());
+                if(result.isPresent()) {
+                    controller.editLabel(oldLabel, result.get());
+                }
+            }
+        });
+        deleteLabel.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                controller.deleteLabel(selectedLabel);
             }
         });
     }
@@ -101,8 +140,10 @@ public class UserInterfaceElements {
     }
 
     public ContextMenu getWaveformListContextMenu(XYChart.Data<Float, Float> label) {
-        waveformListContextMenu.getItems().get(1).setDisable(label == null);
-        waveformListContextMenu.getItems().get(2).setDisable(label == null);
+        selectedLabel = label;
+
+        waveformListContextMenu.getItems().get(1).setDisable(label.getYValue() == null);
+        waveformListContextMenu.getItems().get(2).setDisable(label.getYValue() == null);
 
         return waveformListContextMenu;
     }
